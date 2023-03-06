@@ -11,9 +11,8 @@ Parking lots are necessary, even though there are probably too many of them in t
 
 * Stanford Cars Dataset (`https://ai.stanford.edu/~jkrause/cars/car_dataset.html`).
   * License? "similar to the ImageNet license."
-* TRANCOS Dataset (`https://gram.web.uah.es/data/datasets/trancos/index.html`)
-  * Download (`https://universidaddealcala-my.sharepoint.com/personal/gram_uah_es/Documents/web-gram/TRANCOS_v3.tar.gz?ga=1`)
-  * License? "use of these images must respect Dirección General de Tráfico terms of use."
+* ~~TRANCOS Dataset (`https://gram.web.uah.es/data/datasets/trancos/index.html`)~~
+  * ~~Download (`https://universidaddealcala-my.sharepoint.com/personal/gram_uah_es/Documents/web-gram/TRANCOS_v3.tar.gz?ga=1`)~~
 * Car License Plate Detection (`https://www.kaggle.com/datasets/andrewmvd/car-plate-detection`)
   * 433 images. Bounding box annotations.
   * Note that the domain (`https://makeml.app/datasets/cars-license-plates`) does not exist anymore.
