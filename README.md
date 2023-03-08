@@ -7,7 +7,7 @@ Parking lots are necessary, even though there are probably too many of them in t
 
 > CC BY-NC-SA 3.0
 
-## Resources
+## Dataset Resources
 
 * Stanford Cars Dataset (`https://ai.stanford.edu/~jkrause/cars/car_dataset.html`).
   * License? "similar to the ImageNet license."
@@ -24,3 +24,7 @@ Parking lots are necessary, even though there are probably too many of them in t
   * \> 60,000 images.
   * License? N/A
 
+
+## Additional Resources
+
+* *Training instance segmentation neural network with synthetic datasets for crop seed phenotyping*. (Inspiration for creating a synthetic dataset, `https://www.nature.com/articles/s42003-020-0905-5`)
