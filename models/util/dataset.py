@@ -1,14 +1,14 @@
-import csv
 import glob
 import numpy as np
 import os
 import torch
-import uuid
 
 import xml.etree.ElementTree as ET
 import torchvision.transforms as tf
 from .boxes import resize_with_bb
+from PIL import Image
 from torch.utils.data import Dataset
+from torchvision.transforms.functional import pil_to_tensor
 from skimage import io
 
 # TODO: VALIDATE
@@ -134,3 +134,56 @@ class CarLicensePlateDataset(Dataset):
         y = self.bb[dex]
 
         return X, y
+
+class PennFudanDataset(Dataset):
+    def __init__(self, root, transform=None):
+        self.root = root
+        self.transform = transform
+
+        self.inputs = list(sorted(os.listdir(os.path.join(root, "PNGImages"))))
+        self.masks = list(sorted(os.listdir(os.path.join(root, "PedMasks"))))
+    
+    def __len__(self):
+        return len(self.inputs)
+    
+    # TODO: can be more efficient if images are saved exactly as they should be returned
+    def __getitem__(self, dex):
+        input_path = os.path.join(self.root, "PNGImages", self.inputs[dex])
+        mask_path = os.path.join(self.root, "PedMasks", self.masks[dex])
+
+        input = Image.open(input_path).convert('RGB')
+        input = pil_to_tensor(input) / 255.0
+        mask = Image.open(mask_path)
+
+        mask = np.array(mask)
+        class_ids = np.unique(mask)
+        # remove background ID
+        class_ids = class_ids[1:]
+
+        binary_masks = mask == class_ids[:, None, None]
+
+        n_classes = len(class_ids)
+        boxes = []
+        for i in range(n_classes):
+            p = np.where(binary_masks[i])
+            x_min, x_max = np.min(p[1]), np.max(p[1])
+            y_min, y_max = np.min(p[0]), np.max(p[0])
+            boxes.append([x_min, y_min, x_max, y_max])
+        
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.ones((n_classes,), dtype=torch.int64)
+        binary_masks = torch.as_tensor(binary_masks, dtype=torch.uint8)
+        # HACK
+        iscrowd = torch.zeros((n_classes,), dtype=torch.int64)
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        target = {
+            "boxes": boxes,
+            "labels": labels,
+            "masks": binary_masks,
+            "image_id": torch.tensor([dex]),
+            "iscrowd": iscrowd,
+            "area": area
+        }
+
+        return input, target
