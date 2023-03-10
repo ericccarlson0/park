@@ -18,15 +18,13 @@ from torch.utils.data import DataLoader
 
 cwd = os.getcwd()
 
-if len(sys.argv) != 5:
-    raise ValueError(f"There need to be 4 additional arguments,\npassed {sys.argv[1:]}).")
+if len(sys.argv) != 4:
+    raise ValueError(f"There need to be three additional arguments,\npassed {sys.argv[1:]}).")
 
 device = sys.argv[1]
 PARK_ROOT_DIR = sys.argv[2]
 # '/Users/ericcarlson/Desktop/Projects/park'
-RCNN_ROOT_DIR = sys.argv[3]
-# '/Users/ericcarlson/Desktop/Projects/mask-rcnn'
-PENN_FUDAN_DATASET_DIR = sys.argv[4]
+PENN_FUDAN_DATASET_DIR = sys.argv[3]
 # "/Users/ericcarlson/Desktop/Datasets/PennFudanPed"
 
 def mrcnn_to_finetune(n_classes: int) -> torch.nn.Module:
