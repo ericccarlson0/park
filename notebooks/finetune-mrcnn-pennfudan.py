@@ -118,6 +118,6 @@ torch.save(model, 'mobilenet-mrcnn-penn-fudan-finetune.pt')
 # %% CELL (EVALUATE)
 
 model.eval()
-det_engine.evaluate(model, dataloader_val, 'gpu')
+det_engine.evaluate(model, dataloader_val, device)
 
 # %%
