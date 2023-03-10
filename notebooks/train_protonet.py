@@ -126,7 +126,6 @@ for inputs, bb_targets in dataloader:
 
         plt.show()
 
-    # Validate one batch
     break
 
 # %%
