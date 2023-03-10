@@ -83,10 +83,10 @@ for epoch in range(n_epochs):
     
     for i, (inputs, targets) in enumerate(dataloader_train):
         print('i', i)
-        images = list(image.to(device) for image in images)
+        inputs = list(input.to(device) for input in inputs)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
         with torch.cuda.amp.autocast(enabled=False):
-            loss_dict = model(images, targets)
+            loss_dict = model(inputs, targets)
             losses = sum(loss for loss in loss_dict.values())
 
         loss_dict = model(inputs, targets)
