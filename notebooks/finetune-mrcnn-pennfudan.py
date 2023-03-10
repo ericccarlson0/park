@@ -59,6 +59,7 @@ dataloader_val = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=det
 
 n_classes = 2
 model = mrcnn_to_finetune(n_classes)
+model.to(device)
 
 # %% CELL (CHECK DEVICES)
 
