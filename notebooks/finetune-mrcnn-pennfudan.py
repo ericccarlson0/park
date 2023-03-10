@@ -74,7 +74,7 @@ lr = 5e-3
 weight_decay = 5e-4
 optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad], lr=lr, momentum=0.9, weight_decay=weight_decay)
 
-n_epochs = 4
+n_epochs = 16
 
 logged_time = time.time()
 model.train()
@@ -96,8 +96,6 @@ for epoch in range(n_epochs):
         losses = sum(loss for loss in loss_dict.values())
         loss_val = losses.item()
         epoch_loss += loss_val
-
-        print(loss_val)
 
         if not math.isfinite(loss_val):
             print(f"Loss is {loss_val}, stopping training")
