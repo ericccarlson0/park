@@ -142,14 +142,18 @@ t0 = time.time()
 model.train()
 for epoch in range(n_epochs):
     print('epoch', epoch)
+    epoch_loss = 0.0
     # THIS INSTEAD OF det_engine.train_one_epoch
     for i, (inputs, targets) in enumerate(dataloader_train):
         # NOTE: Each iteration will take around one minute on a Macbook with 16 GB RAM!
         print('i', i)
 
         loss_dict = model(inputs, targets)
+        for k in loss_dict:
+            print(k, loss_dict[k].item())
         losses = sum(loss for loss in loss_dict.values())
         loss_val = losses.item()
+        epoch_loss += loss_val
 
         print(loss_val)
 
@@ -162,6 +166,8 @@ for epoch in range(n_epochs):
 
         # if lr_scheduler is not None:
         #     lr_scheduler.step()
+    
+    print(f'epoch {i} loss \t {epoch_loss:.4f}')
 
 total_time = time.time() - t0
 print('total_time', total_time)
@@ -174,6 +180,7 @@ torch.save(model, 'mobilenet-mrcnn-penn-fudan-transfer.pt')
 
 # %% CELL (EVALUATE)
 
+model.eval()
 det_engine.evaluate(model, dataloader_val, 'cpu')
 
 # %% CELL (VISUALIZE EVALUATION)
@@ -183,12 +190,10 @@ import matplotlib.pyplot as plt
 model.eval()
 for inputs, targets in dataloader_train:
     outputs = model(inputs)
-    outputs = outputs[0]
-    print('boxes', len(outputs['boxes']))
-    # TODO: outputs.detach()
 
     for i in range(len(inputs)):
         target = targets[i]
+        output = outputs[i]
         # 'boxes'
         # 'labels'
         # 'masks'
@@ -208,7 +213,8 @@ for inputs, targets in dataloader_train:
 
         max_bb_count = 4
         bb_count = 0
-        for bb in outputs['boxes']:
+        print(len(output['boxes']), 'boxes')
+        for bb in output['boxes']:
             bb = bb.detach()
             print(bb)
             highlight_rect = plt.Rectangle((bb[0], bb[1]), bb[2]-bb[0], bb[3]-bb[1], color='blue', fill=False, lw=2)
