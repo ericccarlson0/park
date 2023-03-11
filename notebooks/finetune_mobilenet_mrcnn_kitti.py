@@ -48,7 +48,7 @@ for fname in glob.iglob(os.path.join(KITTI_INSTANCE_DIR, '*')):
     plt.show()
 
     count += 1
-    if count > max_count:
+    if count >= max_count:
         break
 
 # %% CELL (CREATE MODEL TO FINE-TUNE)
@@ -93,7 +93,6 @@ def mrcnn_to_finetune(n_classes: int) -> torch.nn.Module:
 dataset = KittiDataset(KITTI_DIR)
 
 dataloader_train = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=det_utils.collate_fn)
-dataloader_val = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=det_utils.collate_fn)
 
 n_classes = 33
 model = mrcnn_to_finetune(n_classes)
@@ -148,17 +147,17 @@ print('total_time', logged_time)
 
 torch.save(model, 'mobilenet-mrcnn-kitti-transfer.pt')
 
-# %% CELL (EVALUATE)
+# %% CELL (LOAD MODEL)
 
-model.eval()
-det_engine.evaluate(model, dataloader_val, device)
+model = torch.load(os.path.join(PARK_ROOT_DIR, 'log/mobilenet-mrcnn-kitti-transfer.pt'), map_location=torch.device('cpu'))
 
 # %% CELL (VISUALIZE EVALUATION)
 
-import matplotlib.pyplot as plt
+dataloader_val = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=det_utils.collate_fn)
 
 model.eval()
-for inputs, targets in dataloader_train:
+for inputs, targets in dataloader_val:
+
     inputs = list(input.to(device) for input in inputs)
     targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
@@ -166,22 +165,27 @@ for inputs, targets in dataloader_train:
 
     for i, (target, output) in enumerate(zip(targets, outputs)):
         print(i)
+
+        for mask in target['masks']:
+            plt.imshow(mask.detach())
+            plt.show()
+
         tensor = inputs[i]
         plt.imshow(tensor.permute((1, 2, 0)).numpy())
         plt.gca().xaxis.set_major_locator(ticker.NullLocator())
         plt.gca().yaxis.set_major_locator(ticker.NullLocator())
 
         for bb in target['boxes']:
-            highlight_rect = plt.Rectangle((bb[0], bb[1]), bb[2]-bb[0], bb[3]-bb[1], color='red', fill=False, lw=2)
+            highlight_rect = plt.Rectangle((bb[0], bb[1]), bb[2]-bb[0], bb[3]-bb[1], color='red', fill=False, lw=1)
             plt.gca().add_patch(highlight_rect)
 
-        max_bb_count = 4
+        max_bb_count = 64
         bb_count = 0
         print(len(output['boxes']), 'boxes')
         for bb in output['boxes']:
             bb = bb.detach()
-            print(bb)
-            highlight_rect = plt.Rectangle((bb[0], bb[1]), bb[2]-bb[0], bb[3]-bb[1], color='blue', fill=False, lw=2)
+            # print(bb)
+            highlight_rect = plt.Rectangle((bb[0], bb[1]), bb[2]-bb[0], bb[3]-bb[1], color='blue', fill=False, lw=1)
             plt.gca().add_patch(highlight_rect)
 
             bb_count += 1
@@ -194,3 +198,5 @@ for inputs, targets in dataloader_train:
 
 # TODO: Is there a similar functionality in pytorch?
 # visualize.display_instances(image, p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
+
+# %%
