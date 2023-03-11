@@ -2,17 +2,28 @@
 
 import glob
 import os
+import sys
 import torch
 
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 from skimage import io
 
+device = 'cpu'
+PARK_ROOT_DIR = '/Users/ericcarlson/Desktop/Projects/park'
 KITTI_DIR = '/Users/ericcarlson/Desktop/Datasets/data_semantics/training'
+
+if len(sys.argv) == 4:
+    device = sys.argv[1]
+    PARK_ROOT_DIR = sys.argv[2]
+    KITTI_DIR = sys.argv[3]
+else:
+    print("Defaults will be used for device, base directory, and dataset directory.")
+
 KITTI_INSTANCE_DIR = os.path.join(KITTI_DIR, 'instance')
 
 count = 0
-max_count = 4
+max_count = 1
 for fname in glob.iglob(os.path.join(KITTI_INSTANCE_DIR, '*')):
     instance_semantic = io.imread(fname)
     plt.imshow(instance_semantic)
@@ -86,10 +97,10 @@ dataloader_val = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=det
 
 n_classes = 33
 model = mrcnn_to_finetune(n_classes)
+model.to(device)
 
 # %% CELL (LOAD MODEL)
 
-PARK_ROOT_DIR = '/Users/ericcarlson/Desktop/Projects/park'
 model = torch.load(os.path.join(PARK_ROOT_DIR, 'log/mobilenet-mrcnn-kitti-transfer.pt'))
 
 # %% CELL (TRAIN)
@@ -110,6 +121,8 @@ for epoch in range(n_epochs):
     for i, (inputs, targets) in enumerate(dataloader_train):
         # NOTE: Each iteration will take around one minute on a Macbook with 16 GB RAM!
         print('i', i)
+        inputs = list(input.to(device) for input in inputs)
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
 
         loss_dict = model(inputs, targets)
         # for k in loss_dict:
@@ -142,7 +155,7 @@ torch.save(model, 'mobilenet-mrcnn-kitti-transfer.pt')
 # %% CELL (EVALUATE)
 
 model.eval()
-det_engine.evaluate(model, dataloader_val, 'cpu')
+det_engine.evaluate(model, dataloader_val, device)
 
 # %% CELL (VISUALIZE EVALUATION)
 

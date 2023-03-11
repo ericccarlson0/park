@@ -1,10 +1,9 @@
 # %% CELL (CREATE MODEL TO FINE-TUNE)
 
 import math
-import os
+import sys
 import torch
 import time
-import sys
 
 from detection import engine as det_engine, utils as det_utils
 from models.util.dataset import PennFudanDataset
@@ -15,8 +14,6 @@ from torchvision.models.detection import MaskRCNN
 from torchvision.models import mobilenet_v2
 from torch import optim
 from torch.utils.data import DataLoader
-
-cwd = os.getcwd()
 
 if len(sys.argv) != 4:
     raise ValueError(f"There need to be three additional arguments,\npassed {sys.argv[1:]}).")
@@ -86,9 +83,9 @@ for epoch in range(n_epochs):
         print('i', i)
         inputs = list(input.to(device) for input in inputs)
         targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-        with torch.cuda.amp.autocast(enabled=False):
-            loss_dict = model(inputs, targets)
-            losses = sum(loss for loss in loss_dict.values())
+
+        loss_dict = model(inputs, targets)
+        losses = sum(loss for loss in loss_dict.values())
 
         loss_dict = model(inputs, targets)
         # for k in loss_dict:
