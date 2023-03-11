@@ -185,6 +185,8 @@ class KittiDataset(Dataset):
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
         labels = torch.as_tensor(labels, dtype=torch.int64)
         b_inst_masks = torch.as_tensor(b_inst_masks, dtype=torch.uint8)
+        # HACK
+        iscrowd = torch.zeros((n_inst,), dtype=torch.int64)
         area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
         target = {
@@ -192,7 +194,8 @@ class KittiDataset(Dataset):
             "labels": labels,
             "masks": b_inst_masks,
             "image_id": torch.tensor([dex]),
-            "area": area
+            "area": area,
+            "iscrowd": iscrowd
         }
 
         return input, target
