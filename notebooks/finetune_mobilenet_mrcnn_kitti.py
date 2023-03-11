@@ -99,10 +99,6 @@ n_classes = 33
 model = mrcnn_to_finetune(n_classes)
 model.to(device)
 
-# %% CELL (LOAD MODEL)
-
-model = torch.load(os.path.join(PARK_ROOT_DIR, 'log/mobilenet-mrcnn-kitti-transfer.pt'))
-
 # %% CELL (TRAIN)
 
 lr = 1e-3
