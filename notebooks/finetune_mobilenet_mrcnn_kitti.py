@@ -92,7 +92,7 @@ def mrcnn_to_finetune(n_classes: int) -> torch.nn.Module:
 
 dataset = KittiDataset(KITTI_DIR)
 
-dataloader_train = DataLoader(dataset, batch_size=8, shuffle=True, collate_fn=det_utils.collate_fn)
+dataloader_train = DataLoader(dataset, batch_size=16, shuffle=True, collate_fn=det_utils.collate_fn)
 dataloader_val = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=det_utils.collate_fn)
 
 n_classes = 33
@@ -106,7 +106,7 @@ weight_decay = 5e-4
 optimizer = optim.SGD([p for p in model.parameters() if p.requires_grad], lr=lr, momentum=0.9, weight_decay=weight_decay)
 # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
-n_epochs = 1
+n_epochs = 16
 
 logged_time = time.time()
 model.train()
@@ -161,7 +161,7 @@ model.eval()
 for inputs, targets in dataloader_train:
     inputs = list(input.to(device) for input in inputs)
     targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
-    
+
     outputs = model(inputs)
 
     for i, (target, output) in enumerate(zip(targets, outputs)):
