@@ -133,7 +133,70 @@ class CarLicensePlateDataset(Dataset):
         
         y = self.bb[dex]
 
-        return X, y
+        return X, y 
+
+class KittiDataset(Dataset):
+    def __init__(self, root, transform=None):
+        self.root = root
+        self.transform = transform
+
+        self.inputs = list(sorted(os.listdir(os.path.join(root, "image"))))
+        self.masks = list(sorted(os.listdir(os.path.join(root, "instance"))))
+    
+    def __len__(self):
+        return len(self.inputs)
+
+    def __getitem__(self, dex):
+        input_path = os.path.join(self.root, "image", self.inputs[dex])
+        mask_path = os.path.join(self.root, "instance", self.masks[dex])
+
+        # print(input_path)
+        input = Image.open(input_path).convert('RGB')
+        input = pil_to_tensor(input) / 255.0
+
+        instance_semantic_mask = io.imread(mask_path)
+        instance_mask = instance_semantic_mask  % 256
+        # semantic_mask = instance_semantic_mask // 256
+
+        inst_ids = np.unique(instance_mask)
+        inst_ids = inst_ids[1:] # remove background
+        # print('instance ids', inst_ids)
+        # class_ids = np.unique(semantic_mask)
+        # print('class ids', class_ids)
+
+        n_inst = len(inst_ids)
+        b_inst_masks = instance_mask == inst_ids[:, None, None]
+
+        # print('instances', len(inst_ids))
+        # print('classes', len(class_ids))
+
+        boxes = []
+        labels = []
+        for i in range(n_inst):
+            p = np.where(b_inst_masks[i])
+            x_min, x_max = np.min(p[1]), np.max(p[1])
+            y_min, y_max = np.min(p[0]), np.max(p[0])
+            boxes.append([x_min, y_min, x_max, y_max])
+            
+            # TODO
+            label = instance_semantic_mask[y_min, x_min] // 256
+            labels.append(label)
+        
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int64)
+        b_inst_masks = torch.as_tensor(b_inst_masks, dtype=torch.uint8)
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        target = {
+            "boxes": boxes,
+            "labels": labels,
+            "masks": b_inst_masks,
+            "image_id": torch.tensor([dex]),
+            "area": area
+        }
+
+        return input, target
+
 
 class PennFudanDataset(Dataset):
     def __init__(self, root, transform=None):
@@ -154,15 +217,13 @@ class PennFudanDataset(Dataset):
         input = Image.open(input_path).convert('RGB')
         input = pil_to_tensor(input) / 255.0
         mask = Image.open(mask_path)
-
         mask = np.array(mask)
-        class_ids = np.unique(mask)
-        # remove background ID
-        class_ids = class_ids[1:]
 
+        class_ids = np.unique(mask)
+        class_ids = class_ids[1:] # remove background
+        n_classes = len(class_ids)
         binary_masks = mask == class_ids[:, None, None]
 
-        n_classes = len(class_ids)
         boxes = []
         for i in range(n_classes):
             p = np.where(binary_masks[i])
