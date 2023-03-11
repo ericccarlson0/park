@@ -159,6 +159,9 @@ import matplotlib.pyplot as plt
 
 model.eval()
 for inputs, targets in dataloader_train:
+    inputs = list(input.to(device) for input in inputs)
+    targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+    
     outputs = model(inputs)
 
     for i, (target, output) in enumerate(zip(targets, outputs)):
